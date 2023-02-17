@@ -42,17 +42,21 @@ SELECT
 FROM matchups
 GROUP BY 1, 2 ORDER BY 3 DESC;
 
-fn matchup_report(min_season bigint, max_season bigint) {
+fn matchup_report(min_season bigint, max_season bigint, winning_team text) {
     SELECT winner, loser, COUNT(*) wins, AVG(winner_points-loser_points) avg_diff
     FROM matchups
     WHERE
-        season >= min_season AND season <= max_season
+        (winning_team IS NULL OR winner = winning_team)
+        AND (min_season IS NULL OR season >= min_season)
+        AND (max_season IS NULL OR season <= max_season)
     GROUP BY 1, 2 ORDER BY 3 DESC
 }
 
 matchup_report(1980, 1989);
 matchup_report(1990, 1999);
+matchup_report(winning_team => 'Golden State Warriors');
 
 let latest_season = (SELECT MAX(season) FROM regular_season_teams);
-matchup_report(latest_season-5, latest_season);
 matchup_report(latest_season-1, latest_season);
+matchup_report(latest_season-5, latest_season);
+matchup_report(latest_season-5, winning_team => 'Golden State Warriors');
